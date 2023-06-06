@@ -1,41 +1,129 @@
 import React, { Component } from 'react'
 import NewsItem from './NewsItem'
+import Loader from './Loader'
+import PropTypes from 'prop-types'
+import './News.css'; // Import the CSS file
+
+//TODO GMT toGMTstring
+//TODO  put author name on the lower part of card
+//TODO  u can use batch to show the source : z-inndex and shift the badge to left
+//TODO  use a common function to get the next page , prev page and first-time load page
+//TODO Add a search box for query ...if query not found then display "Not found"
+//TODO top healdines from general category and other categories
+
+
+
+
+
+
 
 export default class News extends Component {
-    //array holding articles
-     
-    constructor() {
-        super()
+
+    static defaultProps = {
+        country:"in",
+        pageSize:8,
+        category: 'genral',
+    }
+    static propTypes = {
+        country: PropTypes.string,
+        pageSize: PropTypes.number,
+        category: PropTypes.string,
+    }
+
+    constructor(props) {
+        super(props)
         console.log('this is News constructor');
         //state are changable but props are read only
         this.state = {
             articles: [],
-            loading: false
+            loading: false,
+            page: 1
         }
+        //jab bhi news.js call hoga toh hm Title change krnge
+         function capitalizeFirstLetter(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+          }
+        document.title=capitalizeFirstLetter(this.props.category)
 
 
     }
 
-    async componentDidMount(){
+    async componentDidMount() {
         console.log('cdm');
-        let url="https://newsapi.org/v2/everything?q=apple&from=2023-06-05&to=2023-06-05&sortBy=popularity&apiKey=18690ece059a475d9b9f21a2a73f06d2"
-        let data=await fetch(url)
-        let parsedData=await data.json(data)
+     
+    // let url=`https://newsapi.org/v2/top-headlines?&apiKey=2355bf1c286343348af606a12119fd83=1&pageSize=10`
+     let url=`https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=2355bf1c286343348af606a12119fd83`
+        let data = await fetch(url)
+        let parsedData = await data.json(data)
         console.log(parsedData)
-        this.setState({ articles:parsedData.articles})
-        
+        this.setState({ articles: parsedData.articles,
+        totalResults:parsedData.totalResults })
+
     }
+
+    handleNextBtn = async () => {
+        console.log('next is clicked');
+
+        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=2355bf1c286343348af606a12119fd83&page=${this.state.page + 1}&pageSize=10`
+
+        this.setState({ loading: true })
+        let data = await fetch(url)
+        let parsedData = await data.json(data)
+        // console.log(parsedData)
+
+
+        this.setState(
+            {
+                page: this.state.page + 1,
+                articles: parsedData.articles,
+                loading: false
+
+            }
+        )
+          
+    }
+    handlePrevBtn = async () => {
+        console.log('prev is clicked');
+
+        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=2355bf1c286343348af606a12119fd83&page=${this.state.page - 1}&pageSize=10`
+        this.setState({ loading: true })
+        let data = await fetch(url)
+        let parsedData = await data.json(data)
+        // console.log(parsedData)
+
+
+        this.setState(
+            {
+                page: this.state.page - 1,
+                articles: parsedData.articles,
+                loading: false
+            }
+        )
+
+    }
+
     render() {
         return (
-            <div className='container my-3 mx-10'>
-                <h1>Today's Top News</h1>
+            <div className='container my-3 text-center'>
+               
+
+                {this.state.loading && <Loader/>}
+
+                <div className='container d-flex justify-content-between'>
+                    <button   disabled={this.state.page <= 1} type="button" className="btn btn-dark" onClick={this.handlePrevBtn}>&larr; Prev</button>
+
+                    <h1 className='text-center'>Today's Top News {`(${this.state.totalResults})`}</h1>
+
+                    <button disabled={this.state.page + 1 > Math.ceil(this.state.totalResults / 20)} type="button" className="btn btn-dark" onClick={this.handleNextBtn}>Next &rarr;</button>
+
+                </div>
 
 
-                <div className="row  ">
-                    {this.state.articles.map((article ) => {
+                <div className="row my-5 ">
+                    {this.state.articles.map((article) => {
 
-                        return <div   className="col-md-4 my-3 ">
-                            <NewsItem title={article.title.slice(0,45)} description= {article.content.slice(0,45)} imageUrl={article.urlToImage}  url={article.url}/>
+                        return <div className="col-md-4 my-3  ">
+                            <NewsItem key={article.url} title={article.title?article.title.slice(0, 45):"Blank hai bhai"} description={article.content?article.content.slice(0, 45):"Blank hai bhai"} imageUrl={article.urlToImage} url={article.url} />
 
                         </div>
                     })}
