@@ -4,12 +4,15 @@ import Loader from './Loader'
 import PropTypes from 'prop-types'
 import './News.css'; // Import the CSS file
 
-//TODO GMT toGMTstring
-//TODO  put author name on the lower part of card
-//TODO  u can use batch to show the source : z-inndex and shift the badge to left
+// GMT toGMTstring
+// put author name on the lower part of card
+//    u can use batch to show the source : z-inndex and shift the badge to left
 //TODO  use a common function to get the next page , prev page and first-time load page
 //TODO Add a search box for query ...if query not found then display "Not found"
 //TODO top healdines from general category and other categories
+//TODO read about the lifecycle of the component
+//TODO Infinite scrolling
+
 
 
 
@@ -57,7 +60,9 @@ export default class News extends Component {
         let parsedData = await data.json(data)
         console.log(parsedData)
         this.setState({ articles: parsedData.articles,
-        totalResults:parsedData.totalResults })
+        totalResults:parsedData.totalResults,
+         
+     })
 
     }
 
@@ -123,7 +128,7 @@ export default class News extends Component {
                     {this.state.articles.map((article) => {
 
                         return <div className="col-md-4 my-3  ">
-                            <NewsItem key={article.url} title={article.title?article.title.slice(0, 45):"Blank hai bhai"} description={article.content?article.content.slice(0, 45):"Blank hai bhai"} imageUrl={article.urlToImage} url={article.url} />
+                            <NewsItem key={article.url} title={article.title?article.title.slice(0, 45):"Blank hai bhai"} description={article.content?article.content.slice(0, 45):"Blank hai bhai"} imageUrl={article.urlToImage} url={article.url} author={article.author} time={(new Date(article.publishedAt)).toUTCString()} source={article.source.name}/>
 
                         </div>
                     })}
